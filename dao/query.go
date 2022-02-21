@@ -40,7 +40,7 @@ func Query_username_introduction(username string) model.Person_mysql {
 	var user model.Person_mysql
 	querystring := "select * from "+username+";"
 	//提取信息
-	r := db.QueryRow(querystring).Scan(&user.Uid, &user.Username,&user.Avatar,&user.Friends,&user.Follow_business,  &user.Shopping_cart,&user.Order_paid,&user.Order_unpaid,&user.&user.Order_received)
+	r := db.QueryRow(querystring).Scan(&user.Uid, &user.Username,&user.Avatar,&user.Friends,&user.Follow_business,  &user.Shopping_cart,&user.Order_paid,&user.Order_unpaid,&user.Order_received)
 	fmt.Println(r,user)
 	return user
 }

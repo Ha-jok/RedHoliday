@@ -2,11 +2,15 @@ package main
 
 import (
 	"RedHoliday/api"
+	"RedHoliday/service"
 	"github.com/gin-gonic/gin"
 )
 
 func main(){
 	engine := gin.Default()
+
+	//解决跨域
+	engine.Use(service.Cross())
 
 	//创建主页路由
 	//测试成功,游客模式和登录模式成功判断
@@ -48,6 +52,10 @@ func main(){
 
 	//更改购物车,/redholiday/user/shopping-cart
 	api.Shopping_cart_revise(engine)
+
+
+	//修改用户订单，确认收货或取消订单,/redholiday/user/order
+	api.Order_revise(engine)
 
 
 	engine.Run()

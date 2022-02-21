@@ -318,9 +318,9 @@ func Shopping_cart_revise(engine *gin.Engine){
 			if shopping_carts == "无" {
 				return
 			}
-			deletes := strings.Split(delete,",")
+			settlements := strings.Split(delete,",")
 			//更改用户信息
-			for _,v := range settlement{
+			for _,v := range settlements {
 				v1 := v+","
 				shopping_carts = strings.Replace(shopping_carts,v1,"",1)
 			}
@@ -336,9 +336,7 @@ func Shopping_cart_revise(engine *gin.Engine){
 				},
 			})
 		}
-		}
 	})
-
 }
 
 //查看用户订单,/redholiday/user/order
@@ -355,11 +353,13 @@ func Order(engine *gin.Engine){
 		//解析信息
 		order_paid := strings.Split(order_p,",")
 		order_unpaid := strings.Split(order_un,",")
+		order_received := strings.Split(order_re,",")
 		//返回信息
 		c.JSON(http.StatusOK,gin.H{
 			"data" : gin.H{
 				"Order_paid" : order_paid,
 				"Order_unpaid" : order_unpaid,
+				"Order_received" : order_received,
 			},
 		})
 
@@ -418,9 +418,9 @@ func Order_revise(engine *gin.Engine){
 			if strings.Count(order_un,cancel) == 0{
 				return
 			}
-			cancels := strings.Split(receit,",")
+			receits := strings.Split(receit,",")
 			//更改用户信息
-			for _,v := range receit{
+			for _,v := range receits {
 				v1 := v+","
 				order_p = strings.Replace(order_p,v1,"",1)
 			}
