@@ -1,7 +1,5 @@
 ## 接口文档
 
-## RedHoliday
-
 
 ### front-page
 
@@ -198,7 +196,8 @@
 
 #### `/redholiday/user/shopping-cart` `POST`
 
-- 修改用户购物车
+- `application/x-www-form-urlencoded`
+- 修改用户购物车，修改多个商品是，相应请求参数格式应为“商品uid1,商品uid2，商品uid3....."
 
 |请求参数|类型|说明|
 |---|---|---|
@@ -256,7 +255,8 @@
 
 #### `/redholiday/user/order` `POST`
 
-- 修改用户订单，确定收货或取消订单
+- `application/x-www-form-urlencoded`
+- 修改用户订单，确定收货或取消订单，修改多个订单时，相应请求参数格式应为“订单商品uid1,订单商品uid2，订单商品uid3....."
 
 |请求参数|类型|说明|
 |---|---|---|
@@ -282,30 +282,6 @@
 	Order-received: Array,  //[]Order-received;已收货订单
 ```
 
-
-####  `/redholiday/user/avatar`  `PUT`
-
-- `multipart/form-data`
-- 修改/添加头像
-
-
-|请求参数|类型|说明|
-|---|---|---|
-|avatar|必选|头像（二进制文件）|
-|token|必选|用户token|
-
-
-|返回参数|说明|
-|---|---|
-|status|状态码|
-|message|提示信息|
-
-
-|status|message|说明|
-|---|---|---|
-|`false`|`"请登录"`|`token`为空或失效|
-|`false`|`"上传失败"`|图像上传失败|
-|`true`|`"上传成功"`|图像成功上传|
 
 
 ### commodity
@@ -344,6 +320,7 @@
 
 #### `/redholiday/commidity/:uid` `Post`
 
+- `application/x-www-form-urlencoded`
 - 对`uid`为`:uid`的商品进行评论及添加购物车
 
 |请求参数|类型|说明|

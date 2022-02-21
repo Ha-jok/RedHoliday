@@ -109,14 +109,6 @@ func Regist(engine *gin.Engine){
 			})
 			return
 		}
-		//发送验证码
-
-
-
-		//检验验证码是否正确
-
-
-
 		//储存到数据库,添加到用户总表，并创建一个数据表
 		//获取盐值,储存加密后的密码和盐值
 		salt := service.Create_salt()
@@ -143,13 +135,12 @@ func Regist(engine *gin.Engine){
 
 
 
-//修改密码
+
 
 
 
 //邮箱登录,/redholiday/user/login/email
 //获取验证码,/redholiday/user/login/email/verify
-//发送验证码
 func Email_login(engine *gin.Engine){
 	//声明两个全局变量供两个接口使用
 	var verify_code_send,username string
