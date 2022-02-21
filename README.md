@@ -35,7 +35,7 @@
 #### `/redholiday/user/regist` `POST`
 
 - `application/x-www-form-urlencoded`
-- 注册新用户；先调用接口发送验证码（邮箱电话号码二选一）， 并检查用户名及密码的规范性，确认数据符合规范之后再发送表单
+- 注册新用户；
 
 |请求参数|类型|说明|
 |---|---|---|
@@ -86,43 +86,17 @@
 | `true`|`"欢迎回来"，username`|`Username`和`password`匹配|
 
 
-#### `/redholiday/user/login/phone`  `POST`
+
+
+
+#### `/redholiday/user/login/email/verify` ``POST`
 
 - `application/x-www-form-urlencoded`
-- 手机验证码登录
+- 获取邮箱验证码
 
 |请求参数|类型|说明|
 |---|---|---|
-|phone|必选|注册时的邮箱号|
-|verify_code|必选|邮箱接收验证码|
-
-
-| 返回参数 | 说明 |
-|---|---|
-|status|状态码|
-|message| 提示信息|
-|token|用户token|
-
-
-|status|message|说明|
-|---|---|---|
-|`false`|`"请输入用户名"`|`uid`为空|
-|`false`|`"请输入注册手机号"`|`phone`为空|
-|`false`|`"请输入验证码"`|`verify_code`为空|
-|`false`|`"验证码错误"`|`verify_code`和`email`不匹配|
-| `true`|`"欢迎回来，uid`|`email`和`verify_code`匹配|
-
-
-#### `/redholiday/user/forget-password` `POST`
-
-- `application/x-www-form-urlencoded`
-- 邮箱找回验证码;先调用接口发送验证码，再检验参数是否合法，如果合法发送表单
-
-|请求参数|类型|说明|
-|---|---|---|
-|phone|必选|用户注册手机号|
-|verify_code|必选|手机接收验证码|
-|new_password|必选|用户新密码|
+|email|必选|用户邮箱|
 
 
 |返回参数|说明|
@@ -132,11 +106,37 @@
 
 |status|message|说明|
 |---|---|---|
-|`false`|`"请输入注册时的邮箱"`|`email`为空|
-| `false` | `"请输入验证码“`|`verify_code`不存在|
-|`false`|`"验证码错误"`|`verify_code`和`email`不匹配|
-|`false`|`"新密码不符合格式"`|`new_password`为空或`new_password`小于六位或`new_password`大于十二位|
-|`true`|`"用户uid，您的新密码为new_password"`|
+|`false`|`"邮箱格式错误"`|`email`不合法|
+| `false` | `"用户不存在“`|`email`无对应的用户|
+|`true`|` `|`email`合法|
+
+#### `/redholiday/user/login/email` ``POST`
+
+- `application/x-www-form-urlencoded`
+- 邮箱验证码登录，先调用`/redholiday/user/login/email/verify`接口获取验证码，然后通过验证码验证登录
+
+|请求参数|类型|说明|
+|---|---|---|
+|verify_code|必选|邮箱验证码|
+
+
+|返回参数|说明|
+|---|---|
+|status|状态码|
+|message|提示信息|
+|token|用户token|
+|username|用户名|
+
+|status|message|说明|
+|---|---|---|
+|`false`|`"验证码不能为空"`|`verify_code`为空|
+| `false`| `"验证码错误“`|`verify_code`和用户邮箱接收到的验证码不一样|
+|`true`|`"欢迎回来，"username`|`verify_code`和用户邮箱接收到的验证码一样|
+
+
+
+
+
 
 
 #### `/redholiday/user/personal-information/:username` `GET`

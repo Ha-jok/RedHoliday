@@ -5,7 +5,12 @@ import (
 	"RedHoliday/model"
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
+	"math/rand"
+	"net/smtp"
 	"regexp"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -118,4 +123,52 @@ func Order_unpaid(username,order_un string){
 //修改确认收货订单
 func Order_received(username,receit string){
 	dao.Update_order_received(username,receit)
+}
+
+
+//发送邮箱验证码
+func Email_verify_code(email string)string{
+	//绑定邮箱的地址,发送验证码的邮箱
+	sender_email := "323150736@qq.com"
+	//设置smtp，qq邮箱地址及端口，授权码
+	smt := "smtp.qq.com"
+	smtp_port := ":587"
+	authorize_password := "nlfkdkycxypccabg"
+	//头部信息
+	auth := smtp.PlainAuth("",sender_email,authorize_password,smt)
+	//设置邮件发送内容类型
+	content_type := "Content-Type: text/plain;charset=UTF-8"
+	//转变收件人邮箱格式为切片
+	receiver := []string{email}
+	//设置发送信息，发件人，标题，内容
+	//发件人
+	sender_name := "redholiday-project"
+	//标题
+	title := "验证码"
+	//内容，随机四位数的验证码，利用时间戳和rand随机数
+	rand.Seed(time.Now().UnixNano())
+	var verify_code string
+	for i:=0;i<4;i++{
+		ve := rand.Intn(10)
+		verify_code = verify_code+strconv.Itoa(ve)
+
+	}
+	//配置发送信息格式
+	msg := []byte("To: " + strings.Join(receiver, ",") + "\r\nFrom: " + sender_name +
+		"<" + sender_email + ">\r\nSubject: " + title + "\r\n" + content_type + "\r\n\r\n" + verify_code)
+	//调用接口发送信息,并处理错误
+	err := smtp.SendMail(smt+smtp_port,auth,sender_email,receiver,msg)
+	if err != nil {
+		fmt.Println(err.Error(),"  ",time.Now().Format("2006-01-02 15:04:05"))
+		return " "
+	}
+	return verify_code
+
+}
+
+//通过邮箱提取用户密码
+func Query_email_pw(email string)string{
+	//提取数据
+	username := dao.Query_email(email)
+	return username
 }

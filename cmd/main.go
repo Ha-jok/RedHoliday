@@ -24,11 +24,12 @@ func main(){
 	//测试成功，token有效
 	api.Login_pw(engine)
 
-	//手机验证码登录，/redholiday/user/login/email
-	api.Login_phone(engine)
 
-	//邮箱找回密码,/redholiday/user/forget-password
-	api.Forget_Password(engine)
+	//邮箱登录,/redholiday/user/login/email
+	//获取验证码,/redholiday/user/login/email/verify
+	//发送验证码未完成
+	api.Email_login(engine)
+
 
 	//获取个人信息,
 	//测试完成

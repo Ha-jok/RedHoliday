@@ -141,80 +141,63 @@ func Regist(engine *gin.Engine){
 
 }
 
-//手机验证码登录，/redholiday/user/login/phone
-//未经过调试
-func Login_phone(engine *gin.Engine){
-	engine.POST("/redholiday/user/login/email", func(c *gin.Context) {
-		//绑定参数并处理错误
-		var Person model.Person_login_email
-		err := c.ShouldBind(&Person)
-		if err != nil{
-			fmt.Println(err.Error(),"  ",time.Now().Format("2006-01-02 15:04:05"))
-			c.JSON(http.StatusOK,gin.H{
-				"message" : "出现错误",
-			})
-			return
-		}
-		//验证手机号
 
-
-
-		//发送验证码
-
-
-
-		//检验验证码是否正确
-
-
-		//从数据库中提取用户名
-		var username string
-
-
-		//返回数据及token
-		tokenstring,err := service.Generate_Token(username)
-		fmt.Println(username,"登录成功")
-		c.JSON(http.StatusOK,gin.H{
-			"code" : 2000,
-			"data" : gin.H{
-				"token" : tokenstring,
-			},
-		})
-
-	})
-}
-
-
-//邮箱找回密码,/redholiday/user/forget-password
+//邮箱登录,/redholiday/user/login/email
+//获取验证码,/redholiday/user/login/email/verify
 //发送验证码未完成
-func Forget_Password(engine *gin.Engine){
-	engine.POST("/redholiday/user/forget-password", func(c *gin.Context) {
-		//获取参数并处理错误
-		var Person model.Person_forget_password
-		err := c.ShouldBind(&Person)
-		if err != nil{
-			fmt.Println(err.Error(),"  ",time.Now().Format("2006-01-02 15:04:05"))
+func Email_login(engine *gin.Engine){
+	//声明两个全局变量供两个接口使用
+	var verify_code_send,username string
+	//接口一，发送邮箱验证码
+	engine.POST("/redholiday/user/login/email/verify", func(c *gin.Context) {
+		email := c.PostForm("email")
+		//判断邮箱格式
+		b := service.VerifyEmailFormat(email)
+		if !b {
 			c.JSON(http.StatusOK,gin.H{
-				"message" : "出现错误",
+				"message" : "邮箱格式错误",
 			})
 			return
 		}
-		//验证新密码是否符合格式
-		if len(Person.New_password)<6||len(Person.New_password)>12{
+		//邮箱是否存在
+		//提取信息
+		username = service.Query_email_pw(email)
+		if username == "" {
 			c.JSON(http.StatusOK,gin.H{
-				"message" : "密码格式错误",
+				"message" : "用户不存在",
 			})
 			return
 		}
 		//发送验证码
-
-
-		//检验验证码
-
-
-		//储存数据库
-
-
-		//返回信息
+		verify_code_send = service.Email_verify_code(email)
+	})
+	//接口二，验证邮箱验证码
+	engine.POST("/redholiday/user/login/email",func(c *gin.Context) {
+		verify_code := c.PostForm("verify_code")
+		//获取上下文中的验证码
+		if verify_code== "" {
+			c.JSON(http.StatusOK,gin.H{
+				"message" : "验证码不能为空",
+			})
+			return
+		}
+		if verify_code_send == verify_code{
+			//在后台打印日志
+			fmt.Println(username,"登录成功")
+			//返回token
+			tokenstring,_ := service.Generate_Token(username)
+			c.JSON(http.StatusOK,gin.H{
+				"code" : 2000,
+				"message" : "欢迎回来，"+username,
+				"data" : gin.H{
+					"token" : tokenstring,
+				},
+			})
+			return
+		}
+		c.JSON(http.StatusOK,gin.H{
+			"message" : "验证码错误",
+		})
 
 
 	})
