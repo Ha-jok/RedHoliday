@@ -47,6 +47,9 @@ func main(){
 	//测试成功
 	api.Commidity_introduction(engine)
 
+	//返回商品列表,/redholiday/commiditys
+	api.Commiditys(engine)
+
 	//商品评论及添加购物车，/redholiday/commidity/:uid
 	//测试完成
 	api.Commidity_comment(engine)

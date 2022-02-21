@@ -9,6 +9,18 @@ import (
 	"strconv"
 )
 
+//返回商品列表,/redholiday/commiditys
+func Commiditys (engine *gin.Engine){
+	engine.GET("/redholiday/commiditys", func(c *gin.Context) {
+		//获取map
+		commiditys := service.Commiditys()
+		c.JSON(http.StatusOK,gin.H{
+			"data" : commiditys,
+	})
+})
+}
+
+
 //商品详情及添加购物车，/redholiday/commidity/:uid
 func Commidity_introduction (engine *gin.Engine){
 	engine.GET("/redholiday/commidity/:uid", service.Verify_JWT(),func(c *gin.Context) {

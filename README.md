@@ -286,6 +286,35 @@
 
 ### commodity
 
+#### `/redholiday/commiditys` `GET`
+
+-返回商品列表
+
+|返回参数|说明|
+|---|---|
+|status|状态码|
+|data|返回信息|
+
+
+|status|data|message|说明|
+|---|---|---|---|
+|`false`|` `|`商品不存在或已下架`|`uid`不存在|
+|`true`|参考下列代码|` `|商品信息|
+```go
+{
+	Commiditys_uid_name: Map //返回一个map，键为商品uid，值为商品名
+}
+```
+
+
+
+
+
+
+
+
+
+
 #### `/redholiday/commodity/:uid`   `GET`
 
 - UID为`:uid`的商品的详情页

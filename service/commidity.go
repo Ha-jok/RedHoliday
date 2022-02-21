@@ -53,3 +53,11 @@ func Comment(uid int,comment string){
 	//重新储存商品评论
 	dao.Update_ecalutions(uid,commentnew)
 }
+
+
+//商品列表
+func Commiditys()(map[int]string){
+	//提取信息
+	commiditys := dao.Query_commiditys()
+	return commiditys
+}
