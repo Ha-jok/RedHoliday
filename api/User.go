@@ -142,9 +142,14 @@ func Regist(engine *gin.Engine){
 }
 
 
+
+//修改密码
+
+
+
 //邮箱登录,/redholiday/user/login/email
 //获取验证码,/redholiday/user/login/email/verify
-//发送验证码未完成
+//发送验证码
 func Email_login(engine *gin.Engine){
 	//声明两个全局变量供两个接口使用
 	var verify_code_send,username string
@@ -202,6 +207,9 @@ func Email_login(engine *gin.Engine){
 
 	})
 }
+
+
+
 
 
 //获取个人信息,/redholiday/user/:uid
