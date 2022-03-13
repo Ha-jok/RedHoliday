@@ -12,58 +12,30 @@ func main(){
 	//解决跨域
 	engine.Use(service.Cross())
 
-	//创建主页路由
-	//测试成功,游客模式和登录模式成功判断
-	api.Front_page(engine)
-
-	//新用户注册，/redholiday/user/regist
-	//测试成功
-	api.Regist(engine)
-
-	//账号密码登录，redholiday/user/login/pw
-	//测试成功，token有效
-	api.Login_pw(engine)
+	engine.GET("/redholiday/front-page",service.VerifyJWT(),api.FrontPage)
 
 
-	//邮箱登录,/redholiday/user/login/email
-	//获取验证码,/redholiday/user/login/email/verify
-	//发送验证码未完成
-	api.Email_login(engine)
+	engine.GET("/redholiday/:username",api.UserIntroduction)  //获取个人信息
+	userGroup := engine.Group("/redholiday/user")
+	{
+		userGroup.POST("/regist",api.Regist)   //用户注册
+		userGroup.POST("/login/pw",api.LoginPw)   //账号密码登录
+		userGroup.POST("/login/email/verify",api.EmailLoginVerify)   //发送邮箱验证码
+		userGroup.POST("/login/email",api.EmailLogin)   //邮箱验证码登录
+		userGroup.GET("/shopping-cart", service.VerifyJWT(),api.ShoppingCart)   //查看购物车
+		userGroup.POST("shopping-cart", service.VerifyJWT(),api.ShoppingCartRevise)  //更改购物车
+		userGroup.GET("/order",service.VerifyJWT(),api.Order)  //查看订单
+		userGroup.POST("/order",service.VerifyJWT(),api.OrderRevise)
+	}
 
+	commidityGroup := engine.Group("/redholiday/commidity")
+	{
+		commidityGroup.GET("/commiditys",api.Commiditys)  //查看所有商品
+		commidityGroup.POST("/:uid",service.VerifyJWT(),api.CommidityIntroduction)  //商品详情及添加购物车
+		commidityGroup.POST("/:uid", service.VerifyJWT(),api.CommidityComment)   //商品评论
 
-	//获取个人信息,
-	//测试完成
-	api.User_introduction(engine)
-
-	//查看购物车,
-	//测试完成
-	api.Shopping_cart(engine)
-
-	//查看用户订单,
-	//测试完成
-	api.Order(engine)
-
-	//商品详情，/redholiday/commidity/:uid
-	//测试成功
-	api.Commidity_introduction(engine)
-
-	//返回商品列表,/redholiday/commiditys
-	api.Commiditys(engine)
-
-	//商品评论及添加购物车，/redholiday/commidity/:uid
-	//测试完成
-	api.Commidity_comment(engine)
-
-	//更改购物车,/redholiday/user/shopping-cart
-	api.Shopping_cart_revise(engine)
-
-
-	//修改用户订单，确认收货或取消订单,/redholiday/user/order
-	api.Order_revise(engine)
-
+	}
 
 	engine.Run()
-
-
 
 }

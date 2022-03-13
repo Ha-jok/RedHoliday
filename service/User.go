@@ -6,25 +6,31 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"math/rand"
+	"net/http"
 	"net/smtp"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+	"github.com/gin-gonic/gin"
+	"errors"
 )
 
 //该go文件存放/user路径下所调用的非jwt服务函数
 
 
 
+
+
 //判断密码是否正确
-func Judge_up(un,pw string)bool{
+func JudgeUp(un,pw string)bool{
 	//提取盐值和加密后的账号
-	upw,salt := dao.Query_up(un)
+	upw,salt := dao.QueryUp(un)
 	//对用户输入密码进行加密
 	pw1 := pw+salt
-	pwj := Encry_pw(pw1)
+	pwj := EncryPw(pw1)
 	var b bool
 	if upw == pwj {
 		b = true
@@ -43,21 +49,21 @@ func VerifyEmailFormat(email string) bool {
 
 
 //创建新用户
-func Create_user(username,password,email,salt string,phone int)bool{
+func CreateUser(username,password,email,salt string,phone int)bool{
 	//将参数传入数据库,储存到用户表
-	b := dao.Insert_new_person(username,password,email,salt,phone)
+	b := dao.InsertNewPerson(username,password,email,salt,phone)
 	if !b {
 		return false
 	}
 	//获取用户名
-	uid := dao.Query_uid(username)
+	uid := dao.QueryUid(username)
 	//为用户创建一个个人数据表
-	b = dao.Create_new_person(username)
+	b = dao.CreateNewPerson(username)
 	if !b {
 		return false
 	}
 	//将信息储存到新表中
-	b = dao.Insert_new_table(username,uid)
+	b = dao.InsertNewTable(username,uid)
 	if !b {
 		return false
 	}
@@ -66,11 +72,11 @@ func Create_user(username,password,email,salt string,phone int)bool{
 }
 
 //根据username查询个人信息（购物车，订单不可查询）
-func Query_user_intruduction(username string)model.Person_mysql{
+func QueryUserIntruduction(username string)model.Person_mysql{
 
 
 	//从数据库中提取信息
-	user := dao.Query_username_introduction(username)
+	user := dao.QueryUsernameIntroduction(username)
 
 
 	//将信息返回
@@ -81,7 +87,7 @@ func Query_user_intruduction(username string)model.Person_mysql{
 
 
 //注册用户时获取盐值
-func Create_salt()string{
+func CreateSalt()string{
 	//获取当前时间作为盐值
 	salt := time.Now().Format("15:04:05")
 
@@ -92,7 +98,7 @@ func Create_salt()string{
 
 
 //使用md5加密用户密码
-func Encry_pw(pw string)string{
+func EncryPw(pw string)string{
 	h := md5.New()
 	h.Write([]byte(pw))
 	return hex.EncodeToString(h.Sum(nil))
@@ -100,34 +106,34 @@ func Encry_pw(pw string)string{
 
 
 //修改用户购物车商品,重新储存购物车信息
-func Shopping_cart_revise(username,shopping_carts string){
+func ShoppingCartRevise(username,shopping_carts string){
 	//重新储存用户购物车
-	dao.Update_cart(username,shopping_carts)
+	dao.UpdateCart(username,shopping_carts)
 }
 
 //储存支付订单
-func Order_paid(username,settlement string){
+func OrderPaid(username,settlement string){
 	//提取原有支付订单
-	user := Query_user_intruduction(username)
+	user := QueryUserIntruduction(username)
 	paid := user.Order_paid+settlement+","
 	//更改用户订单状态
-	dao.Update_Order_paid(username,paid)
+	dao.UpdateOrderPaid(username,paid)
 }
 
 //修改待支付订单
-func Order_unpaid(username,order_un string){
+func OrderUnpaid(username,order_un string){
 	//更改用户订单状态
-	dao.Update_order_unpaid(username,order_un)
+	dao.UpdateOrderUnpaid(username,order_un)
 }
 
 //修改确认收货订单
-func Order_received(username,receit string){
-	dao.Update_order_received(username,receit)
+func OrderReceived(username,receit string){
+	dao.UpdateOrderReceived(username,receit)
 }
 
 
 //发送邮箱验证码
-func Email_verify_code(email string)string{
+func EmailVerifyCode(email string)string{
 	//绑定邮箱的地址,发送验证码的邮箱
 	sender_email := "323150736@qq.com"
 	//设置smtp，qq邮箱地址及端口，授权码
@@ -167,8 +173,86 @@ func Email_verify_code(email string)string{
 }
 
 //通过邮箱提取用户密码
-func Query_email_pw(email string)string{
+func QueryEmailPw(email string)string{
 	//提取数据
-	username := dao.Query_email(email)
+	username := dao.QueryEmail(email)
 	return username
+}
+
+//jwt生成
+func GenerateToken(username string)(string,error){
+	//创建声明
+	c := model.Claims{
+		username,
+		jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(model.JWT_Effective_Time).Unix(),
+			Issuer: "redholiday-project",
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,c)
+	return token.SignedString(model.Secret)
+
+}
+
+
+//JWT解析
+func ParseJWT(tokenstring string)(*model.Claims,error){
+	//解析token
+	token,err := jwt.ParseWithClaims(tokenstring,&model.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return model.Secret,nil
+	})
+	//处理错误
+	if err != nil {
+		return nil, err
+	}
+	//验证是否token有效
+	if claims,ok := token.Claims.(*model.Claims); ok && token.Valid {
+		return claims,nil
+	}
+	return nil, errors.New("token无效")
+}
+
+
+//JWT认证
+func VerifyJWT()func(c *gin.Context){
+	return func(c *gin.Context) {
+
+		//获取含有token信息的头部Authorazition部分
+		authorization := c.Request.Header.Get("Authorization")
+		fmt.Println(authorization)
+		if authorization == "" {
+			c.JSON(http.StatusOK,gin.H{
+				"code" : 2003,
+				"message" : "Authorazition为空",
+			})
+			c.Abort()
+			return
+		}
+
+		//提取token信息段
+		JWT_information := strings.SplitN(authorization," ",2)
+		//验证auth信息段是否合法
+		if !(len(JWT_information) == 2 && JWT_information[0] == "Bearer") {
+			c.JSON(http.StatusOK,gin.H{
+				"code" : 2004,
+				"message" : "Authorazition格式错误",
+			})
+			c.Abort()
+			return
+		}
+		//验证token是否有效
+		claim,err := ParseJWT(JWT_information[1])
+		if err != nil {
+			c.JSON(http.StatusOK,gin.H{
+				"code" : 2005,
+				"message" : "token无效",
+			})
+			c.Abort()
+			return
+		}
+		//将claim信息保存到上下文
+		c.Set("username",claim.Username)
+		c.Next()
+	}
 }
