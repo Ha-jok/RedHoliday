@@ -6,6 +6,17 @@ import (
 )
 
 //该go文件存放各种结构体
+type Conf struct {
+	ClientId string
+	ClientSecret string
+	RedirectUrl string
+}
+
+type GithubToken struct {
+	AccessToken string `json:"access_token"`
+	TokenType   string `json:"token_type"`
+	Scope       string `json:"scope"`
+}
 
 type Person_mysql struct {
 	Uid int

@@ -26,6 +26,8 @@ func main(){
 		userGroup.POST("shopping-cart", service.VerifyJWT(),api.ShoppingCartRevise)  //更改购物车
 		userGroup.GET("/order",service.VerifyJWT(),api.Order)  //查看订单
 		userGroup.POST("/order",service.VerifyJWT(),api.OrderRevise)
+		userGroup.GET("/login/github",)   //github登录接口
+		userGroup.GET("/login/redirec",)   //github登录返回接口
 	}
 
 	commidityGroup := engine.Group("/redholiday/commidity")

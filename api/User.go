@@ -5,9 +5,11 @@ package api
 import (
 	"RedHoliday/model"
 	"RedHoliday/service"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
+	"html/template"
 	"net/http"
 	"strconv"
 	"strings"
@@ -127,8 +129,92 @@ func LoginPw(c *gin.Context){
 	})
 }
 
+//github登录
+var conf = model.Conf{
+	ClientId: "4ddf19d055b79fe7bcf2",
+	ClientSecret: "85324ea74af30e837e676b4d995842d0161e5416",
+	RedirectUrl: "http://localhost:8080/redholiday/user/login/redirec",
+}
+func LoginGithub(c *gin.Context){
+	//解析指定文件生成模板对象
+	var temp *template.Template
+	temp,err := template.ParseFiles("oauth/login.html")
+	if err != nil {
+		fmt.Println("error:",err)
+		return
+	}
+
+	//利用给定数据，渲染模板（html页面）,并将结果返回前端
+	err = temp.Execute(c.Writer,conf)
+	if err != nil {
+		fmt.Println("error:",err)
+		return
+	}
+
+}
+func LoginGithubRedirec(c *gin.Context){
+
+	//获取code
+	code := c.Query("code")
+	fmt.Println(code)
+	//获取token
+	//获取token的url
+	tokenUrl := fmt.Sprintf("https://github.com/login/oauth/access_token?client_id=%s&client_secret=%s&code=%s",
+		conf.ClientId,conf.ClientSecret,code,
+	)
+	//获取token
+	//形成请求
+	var req *http.Request
+	var err error
+	req,err = http.NewRequest(http.MethodGet,tokenUrl,nil)
+	if err != nil{
+		return
+	}
+	req.Header.Set("accept","application/json")
+	//发送请求并获得相应
+	var httpClient = http.Client{}
+	var res *http.Response
+	res,err = httpClient.Do(req)
+	if err != nil{
+		return
+	}
+	//将响应体解析为token，并返回
+	var token model.GithubToken
+	err = json.NewDecoder(res.Body).Decode(&token)
+	if err != nil{
+		return
+	}
+	//利用token获取用户信息
+	//请求
+	var userInfoUrl = "https://api.github.com/user"
+	req,err = http.NewRequest(http.MethodGet,userInfoUrl,nil)
+	if err != nil {
+		fmt.Println("reqerr:",err)
+	}
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("token %s", token.AccessToken))
+
+	//发送请求并获取响应
+	var client = http.Client{}
+	res,err = client.Do(req)
+	if err != nil {
+		fmt.Println("reserr:",err)
+	}
+	//解析信息
+	var userinfo = make(map[string]interface{})
+	err = json.NewDecoder(res.Body).Decode(&userinfo)
+	if err != nil {
+		fmt.Println("jsonerr:",err)
+	}
+
+	gituserurl := userinfo["organizations_url"].(string)
+	gitusername := strings.Split(gituserurl,"/")
+	c.JSON(http.StatusOK,gin.H{
+		"欢迎登陆" :  gitusername[4],
+	})
 
 
+}
 
 
 
