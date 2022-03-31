@@ -129,6 +129,7 @@ func LoginPw(c *gin.Context){
 	})
 }
 
+
 //github登录
 var conf = model.Conf{
 	ClientId: "4ddf19d055b79fe7bcf2",
